@@ -1,26 +1,28 @@
-# sse-tools
+# @geekagan/sse-toolkit
 
-Production-grade SSE (Server-Sent Events) for the frontend.
+[English](./README.en.md) | 中文
 
-- **WHATWG-compliant** SSE stream parsing
-- **Exponential backoff** with equal-jitter reconnection
-- **Resume from checkpoint** via `Last-Event-ID` and external persistence hook
-- **Two modes**: `fetch+ReadableStream` (full control) or `EventSource`-compatible API
-- **Tree-shakeable**: subpath exports — import only what you use
-- **Zero dependencies**, dual CJS + ESM
+面向前端的生产级 SSE（Server-Sent Events）工具库。
 
-## Installation
+- **符合 WHATWG 标准**的 SSE 流解析
+- **指数退避**加等比抖动的自动重连
+- **断点续传**：通过 `Last-Event-ID` 与外部持久化钩子恢复进度
+- **两种模式**：`fetch+ReadableStream`（完全可控）或兼容 `EventSource` 的 API
+- **Tree-shakeable**：子路径导出，按需引入
+- **零依赖**，同时支持 CJS 和 ESM
+
+## 安装
 
 ```bash
-npm install sse-tools
+npm install @geekagan/sse-toolkit
 ```
 
-## Quick start
+## 快速上手
 
-### fetch mode
+### fetch 模式
 
 ```ts
-import { createFetchSSE } from 'sse-tools/fetch'
+import { createFetchSSE } from '@geekagan/sse-toolkit/fetch'
 
 const conn = createFetchSSE({
   url: '/api/stream',
@@ -28,21 +30,21 @@ const conn = createFetchSSE({
     console.log(event.data)
   },
   onError(err, ctx) {
-    console.error(`attempt ${ctx.attempt}, willRetry: ${ctx.willRetry}`)
+    console.error(`第 ${ctx.attempt} 次尝试，willRetry: ${ctx.willRetry}`)
   },
   onClose(reason) {
-    console.log('closed:', reason) // 'manual' | 'complete' | 'exhausted' | 'error'
+    console.log('已关闭:', reason) // 'manual' | 'complete' | 'exhausted' | 'error'
   },
 })
 
-// later
+// 稍后关闭连接
 conn.close()
 ```
 
-### EventSource-compatible mode
+### EventSource 兼容模式
 
 ```ts
-import { createEventSource } from 'sse-tools/eventsource'
+import { createEventSource } from '@geekagan/sse-toolkit/eventsource'
 
 const es = createEventSource({ url: '/api/stream' })
 
@@ -51,10 +53,10 @@ es.addEventListener('message', (event) => {
 })
 
 es.addEventListener('update', (event) => {
-  console.log('named event:', event.data)
+  console.log('具名事件:', event.data)
 })
 
-// es.readyState: 0 (connecting) | 1 (open) | 2 (closed)
+// es.readyState: 0（连接中）| 1（已连接）| 2（已关闭）
 es.close()
 ```
 
@@ -62,33 +64,33 @@ es.close()
 
 ### `createFetchSSE(options): FetchSSEConnection`
 
-| Option | Type | Default | Description |
+| 选项 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
-| `url` | `string` | required | SSE endpoint URL |
-| `method` | `string` | `'GET'` | HTTP method |
-| `headers` | `Record<string, string>` | `{}` | Extra request headers |
-| `body` | `BodyInit` | — | Request body (useful for POST) |
-| `lastEventId` | `string` | `''` | Initial `Last-Event-ID` for resume |
-| `onIdUpdate` | `(id: string) => void` | — | Called when server sends a new event id |
-| `onMessage` | `(event: SSEEvent) => void` | required | Called for each SSE event |
-| `onOpen` | `() => void` | — | Called when connection is established |
-| `onError` | `(err: Error, ctx: SSEErrorContext) => void` | — | Called on error |
-| `onClose` | `(reason: SSECloseReason) => void` | — | Called when connection is permanently closed |
-| `retry` | `Partial<RetryOptions>` | see below | Reconnect configuration |
+| `url` | `string` | 必填 | SSE 端点 URL |
+| `method` | `string` | `'GET'` | HTTP 请求方法 |
+| `headers` | `Record<string, string>` | `{}` | 额外请求头 |
+| `body` | `BodyInit` | — | 请求体（POST 场景使用） |
+| `lastEventId` | `string` | `''` | 用于断点续传的初始 `Last-Event-ID` |
+| `onIdUpdate` | `(id: string) => void` | — | 服务端发送新事件 ID 时触发 |
+| `onMessage` | `(event: SSEEvent) => void` | 必填 | 每条 SSE 事件触发 |
+| `onOpen` | `() => void` | — | 连接建立时触发 |
+| `onError` | `(err: Error, ctx: SSEErrorContext) => void` | — | 发生错误时触发 |
+| `onClose` | `(reason: SSECloseReason) => void` | — | 连接永久关闭时触发 |
+| `retry` | `Partial<RetryOptions>` | 见下方 | 重连配置 |
 
-**RetryOptions defaults:**
+**RetryOptions 默认值：**
 
 ```ts
 {
   maxAttempts: 10,
-  initialDelay: 1000,   // ms
-  maxDelay: 30000,      // ms
+  initialDelay: 1000,   // 毫秒
+  maxDelay: 30000,      // 毫秒
   multiplier: 2,
   jitter: true,
 }
 ```
 
-**FetchSSEConnection:**
+**FetchSSEConnection：**
 
 ```ts
 interface FetchSSEConnection {
@@ -99,7 +101,7 @@ interface FetchSSEConnection {
 
 ### `createEventSource(options): EventSourceConnection`
 
-Same options as `createFetchSSE` minus `onMessage`, plus:
+选项与 `createFetchSSE` 相同（去掉 `onMessage`），另增：
 
 ```ts
 interface EventSourceConnection {
@@ -110,10 +112,10 @@ interface EventSourceConnection {
 }
 ```
 
-## Resume / checkpoint (断点续传)
+## 断点续传
 
 ```ts
-// Persist the last received event ID
+// 持久化最后接收的事件 ID
 const conn = createFetchSSE({
   url: '/api/stream',
   lastEventId: localStorage.getItem('lastEventId') ?? '',
@@ -126,11 +128,11 @@ const conn = createFetchSSE({
 })
 ```
 
-On reconnect, `sse-tools` automatically sends `Last-Event-ID` in the request headers so the server can resume from the correct position.
+重连时，`@geekagan/sse-toolkit` 会自动在请求头中携带 `Last-Event-ID`，服务端据此从正确位置恢复推送。
 
-## POST with body
+## POST 请求
 
-The native `EventSource` API doesn't support POST. `sse-tools` does:
+原生 `EventSource` API 不支持 POST，`@geekagan/sse-toolkit` 支持：
 
 ```ts
 const conn = createFetchSSE({
@@ -144,25 +146,25 @@ const conn = createFetchSSE({
 })
 ```
 
-## HTTP status handling
+## HTTP 状态码处理
 
-| Status | Behavior |
+| 状态码 | 行为 |
 |---|---|
-| 2xx | Stream normally |
-| 401, 403, 404, 422 | No retry → `onClose('error')` |
-| 429, 503 | Retry, respecting `Retry-After` header |
-| Other 5xx | Retry with backoff |
+| 2xx | 正常流式传输 |
+| 401、403、404、422 | 不重试 → `onClose('error')` |
+| 429、503 | 重试，遵循 `Retry-After` 响应头 |
+| 其他 5xx | 退避重试 |
 
-## Reconnect backoff
+## 重连退避策略
 
-Uses equal-jitter backoff: `delay/2 + random(0, delay/2)`. This avoids thundering herd while preserving a minimum floor on the delay.
+采用等比抖动退避：`delay/2 + random(0, delay/2)`。在保证最小延迟下限的同时，有效避免惊群效应。
 
-## Types
+## 类型
 
-All public types are exported from the root entry:
+所有公开类型均从根入口导出：
 
 ```ts
-import type { SSEEvent, FetchSSEOptions, RetryOptions, SSECloseReason } from 'sse-tools'
+import type { SSEEvent, FetchSSEOptions, RetryOptions, SSECloseReason } from '@geekagan/sse-toolkit'
 ```
 
 ## License

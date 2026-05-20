@@ -1,4 +1,4 @@
-# sse-tools Design Spec
+# @geekagan/sse-toolkit Design Spec
 
 **Date:** 2026-05-20  
 **Status:** Approved
@@ -7,12 +7,12 @@
 
 ## Overview
 
-`sse-tools` is a production-grade npm package for handling Server-Sent Events (SSE) on the frontend. It unifies stream parsing, reconnection with exponential backoff, automatic disconnect handling, and resume-from-checkpoint (断点续传) into a single coherent API.
+`@geekagan/sse-toolkit` is a production-grade npm package for handling Server-Sent Events (SSE) on the frontend. It unifies stream parsing, reconnection with exponential backoff, automatic disconnect handling, and resume-from-checkpoint (断点续传) into a single coherent API.
 
 **Key decisions:**
 - TypeScript source, dual CJS + ESM output
 - Functional API style
-- Single package with subpath exports (`sse-tools/fetch`, `sse-tools/eventsource`)
+- Single package with subpath exports (`@geekagan/sse-toolkit/fetch`, `@geekagan/sse-toolkit/eventsource`)
 - Two modes share internal logic but are separately importable for tree-shaking
 - `_internal/` modules are not exposed via `exports`
 
@@ -21,7 +21,7 @@
 ## 1. Directory Structure
 
 ```
-sse-tools/
+@geekagan/sse-toolkit/
 ├── src/
 │   ├── fetch/
 │   │   └── index.ts          # createFetchSSE()
@@ -66,7 +66,7 @@ sse-tools/
 }
 ```
 
-- `"."` exports types only (no runtime code); enables `import type { SSEOptions } from 'sse-tools'`
+- `"."` exports types only (no runtime code); enables `import type { SSEOptions } from '@geekagan/sse-toolkit'`
 - `main`/`module` fallbacks for toolchains that don't read `exports` (e.g. Jest default config)
 - `_internal/` is intentionally absent from exports
 - **tsup note:** `src/types.ts` must be listed as an explicit entry in `tsup.config.ts` since it is a types-only file. tsup will not emit it unless declared. Example:
@@ -110,10 +110,10 @@ interface SSEErrorContext {
 }
 ```
 
-### 3.2 `sse-tools/fetch` — `createFetchSSE()`
+### 3.2 `@geekagan/sse-toolkit/fetch` — `createFetchSSE()`
 
 ```ts
-import { createFetchSSE } from 'sse-tools/fetch'
+import { createFetchSSE } from '@geekagan/sse-toolkit/fetch'
 
 const connection = createFetchSSE({
   url: string
@@ -138,12 +138,12 @@ interface FetchSSEConnection {
 }
 ```
 
-### 3.3 `sse-tools/eventsource` — `createEventSource()`
+### 3.3 `@geekagan/sse-toolkit/eventsource` — `createEventSource()`
 
 Exposes EventSource-like semantics but uses fetch internally, enabling custom headers and POST body (deviating from native EventSource intentionally).
 
 ```ts
-import { createEventSource } from 'sse-tools/eventsource'
+import { createEventSource } from '@geekagan/sse-toolkit/eventsource'
 
 const es = createEventSource({
   url: string

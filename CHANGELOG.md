@@ -1,4 +1,4 @@
-# sse-tools
+# @geekagan/sse-toolkit
 
 ## 0.2.0
 
