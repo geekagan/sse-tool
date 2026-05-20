@@ -12,14 +12,14 @@
       "types": "./dist/types.d.ts"
     },
     "./fetch": {
+      "types": "./dist/fetch/index.d.ts",
       "import": "./dist/fetch/index.mjs",
-      "require": "./dist/fetch/index.cjs",
-      "types": "./dist/fetch/index.d.ts"
+      "require": "./dist/fetch/index.cjs"
     },
     "./eventsource": {
+      "types": "./dist/eventsource/index.d.ts",
       "import": "./dist/eventsource/index.mjs",
-      "require": "./dist/eventsource/index.cjs",
-      "types": "./dist/eventsource/index.d.ts"
+      "require": "./dist/eventsource/index.cjs"
     }
   },
   "files": ["dist"],
