@@ -1,0 +1,44 @@
+{
+  "name": "sse-tools",
+  "version": "0.1.0",
+  "description": "Production-grade frontend SSE: stream parsing, reconnection, resume",
+  "keywords": ["sse", "server-sent-events", "fetch", "eventsource", "streaming"],
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/fetch/index.cjs",
+  "module": "./dist/fetch/index.mjs",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.ts"
+    },
+    "./fetch": {
+      "import": "./dist/fetch/index.mjs",
+      "require": "./dist/fetch/index.cjs",
+      "types": "./dist/fetch/index.d.ts"
+    },
+    "./eventsource": {
+      "import": "./dist/eventsource/index.mjs",
+      "require": "./dist/eventsource/index.cjs",
+      "types": "./dist/eventsource/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "node scripts/e2e-server.js & sleep 1 && vitest run --config vitest.e2e.config.ts; kill %1",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "release": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0",
+    "eslint": "^10.4.0",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.4",
+    "vitest": "^4.1.6"
+  }
+}
