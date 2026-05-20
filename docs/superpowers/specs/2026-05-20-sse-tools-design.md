@@ -69,6 +69,15 @@ sse-tools/
 - `"."` exports types only (no runtime code); enables `import type { SSEOptions } from 'sse-tools'`
 - `main`/`module` fallbacks for toolchains that don't read `exports` (e.g. Jest default config)
 - `_internal/` is intentionally absent from exports
+- **tsup note:** `src/types.ts` must be listed as an explicit entry in `tsup.config.ts` since it is a types-only file. tsup will not emit it unless declared. Example:
+  ```ts
+  // tsup.config.ts
+  export default defineConfig({
+    entry: ['src/fetch/index.ts', 'src/eventsource/index.ts', 'src/types.ts'],
+    format: ['esm', 'cjs'],
+    dts: true,
+  })
+  ```
 
 ---
 
@@ -151,7 +160,11 @@ const es = createEventSource({
   onClose?: (reason: 'manual' | 'complete' | 'exhausted' | 'error') => void
 })
 
-// Returned handle (EventSource-compatible interface)
+// Returned handle (EventSource-like interface)
+// INTENTIONAL DEVIATION: listener receives SSEEvent, not MessageEvent.
+// Native EventSource uses (event: MessageEvent) => void.
+// Migration from native EventSource requires updating listener signatures.
+// This is documented explicitly; there is no silent compatibility shim.
 interface EventSourceConnection {
   addEventListener(type: string, listener: (event: SSEEvent) => void): void
   removeEventListener(type: string, listener: (event: SSEEvent) => void): void
@@ -185,7 +198,18 @@ Equal jitter guarantees a minimum delay floor while avoiding thundering herd.
 | `ReadableStream` closes mid-stream | Retry with normal backoff |
 | `ReadableStream` ends normally | **No retry** → `onClose('complete')` |
 
-### 4.3 `retry:` Field in SSE Protocol
+### 4.3 Internal Connection State Tracking
+
+The internal state machine must distinguish these terminal states to prevent `close()` from doing redundant cleanup after a natural stream end:
+
+```ts
+// Internal (not public) state enum
+type InternalState = 'connecting' | 'open' | 'reconnecting' | 'closed_complete' | 'closed_manual' | 'closed_error' | 'closed_exhausted'
+```
+
+When `ReadableStream` ends naturally, state transitions to `closed_complete` before `onClose('complete')` fires. A subsequent `close()` call on an already-closed connection is a no-op — no teardown, no warning.
+
+### 4.4 `retry:` Field in SSE Protocol
 
 When the server sends `retry: 3000`, it overrides `initialDelay` for subsequent reconnects (per WHATWG SSE spec).
 
@@ -268,7 +292,7 @@ Use `vi.useFakeTimers()` + mocked `fetch`. Four distinct mock scenarios:
    - 429/503 with `Retry-After` → retry after header delay
    - 5xx → retry with backoff
 3. `fetch` 200 + `ReadableStream` closes mid-stream → triggers retry
-4. `fetch` 200 + `ReadableStream` ends normally → **no retry**, `onClose('manual')`
+4. `fetch` 200 + `ReadableStream` ends normally → **no retry**, `onClose('complete')`
 
 Verify: backoff delay calculation, `Retry-After` parsing, `maxAttempts` exhaustion → `onClose('exhausted')`.
 
@@ -280,9 +304,11 @@ connect → receive events → server drops connection → reconnect → `close(
 ```json
 "scripts": {
   "test": "vitest run",
-  "test:e2e": "node scripts/e2e-server.js & sleep 1 && vitest run e2e"
+  "test:e2e": "node scripts/e2e-server.js & sleep 1 && vitest run e2e; kill %1"
 }
 ```
+
+`kill %1` ensures the background server process is terminated after the test run (pass or fail), preventing port conflicts on subsequent runs. `e2e-server.js` should also listen for `SIGTERM` for graceful shutdown.
 
 ---
 
