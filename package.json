@@ -1,6 +1,6 @@
 {
   "name": "@geekagan/sse-toolkit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Production-grade frontend SSE: stream parsing, reconnection, resume",
   "keywords": [
     "sse",

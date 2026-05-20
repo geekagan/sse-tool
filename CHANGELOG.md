@@ -1,5 +1,11 @@
 # @geekagan/sse-toolkit
 
+## 0.1.1
+
+### Patch Changes
+
+- fix: package name to @geekagan/sse-toolkit
+
 ## 0.2.0
 
 ### Minor Changes
