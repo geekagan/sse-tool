@@ -1,6 +1,6 @@
 {
-  "name": "sse-tools",
-  "version": "0.2.0",
+  "name": "sse-toolkit",
+  "version": "0.1.0",
   "description": "Production-grade frontend SSE: stream parsing, reconnection, resume",
   "keywords": [
     "sse",
