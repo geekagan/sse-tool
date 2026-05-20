@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/jichengye/Documents/WorkSpace/github_ps/sse-tool log --oneline -10)",
+      "Bash(git *)",
+      "Bash(npm install *)",
+      "Bash(npx changeset *)",
+      "Bash(npx tsc *)",
+      "Bash(npx vitest *)",
+      "Bash(npm run *)",
+      "Bash(node *)",
+      "Bash(npm test *)"
+    ]
+  }
+}
