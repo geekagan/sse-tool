@@ -1,8 +1,14 @@
 {
-  "name": "sse-tools",
+  "name": "sse-toolkit",
   "version": "0.1.0",
   "description": "Production-grade frontend SSE: stream parsing, reconnection, resume",
-  "keywords": ["sse", "server-sent-events", "fetch", "eventsource", "streaming"],
+  "keywords": [
+    "sse",
+    "server-sent-events",
+    "fetch",
+    "eventsource",
+    "streaming"
+  ],
   "license": "MIT",
   "type": "module",
   "main": "./dist/fetch/index.cjs",
@@ -22,7 +28,9 @@
       "require": "./dist/eventsource/index.cjs"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
